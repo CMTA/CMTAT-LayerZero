@@ -1,0 +1,81 @@
+// SPDX-License-Identifier: SEE LICENSE IN LICENSE
+pragma solidity ^0.8.20;
+
+import {Test} from "forge-std/Test.sol";
+
+import {LayerZeroAdapter} from "script/DeployAdapter.s.sol";
+
+import {CMTATStandalone} from "CMTAT/deployment/CMTATStandalone.sol";
+import {ICMTATConstructor} from "CMTAT/interfaces/technical/ICMTATConstructor.sol";
+import {IERC1643CMTAT} from "CMTAT/interfaces/tokenization/draft-IERC1643CMTAT.sol";
+import {IRuleEngine} from "CMTAT/interfaces/engine/IRuleEngine.sol";
+
+import {TestHelperOz5} from "@layerzerolabs/test-devtools-evm-foundry/contracts/TestHelperOz5.sol";
+
+contract Setup is Test, TestHelperOz5 {
+    uint32 eidA = 1;
+    uint32 eidB = 2;
+
+    CMTATStandalone cmtatA;
+    LayerZeroAdapter adapterA;
+
+    CMTATStandalone cmtatB;
+    LayerZeroAdapter adapterB;
+
+    address admin = address(this);
+    string chain = "arbitrum-sepolia";
+
+    function setUp() public override {
+        _beforeSetup();
+        _setup();
+        _afterSetup();
+    }
+
+    function _beforeSetup() public virtual {}
+
+    function _setup() public virtual {
+        vm.deal(admin, 100 ether);
+
+        setUpEndpoints(2, LibraryType.UltraLightNode);
+
+        vm.startPrank(admin);
+
+        cmtatA = new CMTATStandalone(
+            address(0),
+            admin,
+            ICMTATConstructor.ERC20Attributes("Token A", "A", 6),
+            ICMTATConstructor.ExtraInformationAttributes(
+                "TOKEN_ID", IERC1643CMTAT.DocumentInfo("Token Terms", "URL", 0), "Token Information"
+            ),
+            ICMTATConstructor.Engine(IRuleEngine(address(0)))
+        );
+        adapterA = new LayerZeroAdapter(address(cmtatA), endpoints[eidA], admin);
+
+        cmtatB = new CMTATStandalone(
+            address(0),
+            admin,
+            ICMTATConstructor.ERC20Attributes("Token B", "B", 6),
+            ICMTATConstructor.ExtraInformationAttributes(
+                "TOKEN_ID", IERC1643CMTAT.DocumentInfo("Token Terms", "URL", 0), "Token Information"
+            ),
+            ICMTATConstructor.Engine(IRuleEngine(address(0)))
+        );
+        adapterB = new LayerZeroAdapter(address(cmtatB), endpoints[eidB], admin);
+
+        cmtatA.grantRole(cmtatA.CROSS_CHAIN_ROLE(), address(adapterA));
+        cmtatB.grantRole(cmtatB.CROSS_CHAIN_ROLE(), address(adapterB));
+
+        // Configure and wire the OFTs together
+        address[] memory adapters = new address[](2);
+        adapters[0] = address(adapterA);
+        adapters[1] = address(adapterB);
+        this.wireOApps(adapters);
+
+        deal(address(cmtatA), admin, 100 * 10e6);
+
+        cmtatA.approve(address(adapterA), type(uint256).max);
+        cmtatB.approve(address(adapterB), type(uint256).max);
+    }
+
+    function _afterSetup() public virtual {}
+}

@@ -1,0 +1,10 @@
+{
+  "arbitrum-sepolia": {
+    "CMTATStandalone": "0x01E49730fC7Ad1D063C3d22407b1743c2230e9cb",
+    "LayerZeroAdapter": "0x9C982797A302F36DBa3b1A301aaf075A96938eEA"
+  },
+  "mainnet-sepolia": {
+    "CMTATStandalone": "0x80aC2730B412d265C4a27FC7072774945D457BDb",
+    "LayerZeroAdapter": "0xf49C458C004c553E22587bBF2E9444144b04A71d"
+  }
+}

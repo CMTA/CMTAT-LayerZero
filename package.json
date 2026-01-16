@@ -1,0 +1,29 @@
+{
+  "name": "CMTAT-LayerZero",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "deploy:token": "forge script DeployToken",
+    "deploy:adapter": "forge script DeployAdapter",
+    "wire": "forge script WireAdapters",
+    "token:mint": "forge script Mint",
+    "token:approve": "forge script Approve",
+    "bridge": "forge script SendTokens"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.13.1",
+  "devDependencies": {
+    "@layerzerolabs/oapp-evm": "^0.4.1",
+    "@layerzerolabs/oft-evm": "^4.0.1",
+    "@layerzerolabs/lz-evm-messagelib-v2": "^3.0.154",
+    "@layerzerolabs/lz-evm-protocol-v2": "^3.0.154",
+    "@layerzerolabs/lz-evm-v1-0.7": "^3.0.154",
+    "@layerzerolabs/test-devtools-evm-foundry": "^8.0.1",
+    "@openzeppelin/contracts": "^5.5.0",
+    "@openzeppelin/contracts-upgradeable": "^5.5.0",
+    "solidity-bytes-utils": "^0.8.4"
+  }
+}
