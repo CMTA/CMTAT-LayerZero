@@ -166,7 +166,7 @@ pnpm run token:mint -- --broadcast
 
 > CMTAT Standard version does not require approval to perform burn/mint or crosschainmint/crosschainburn.
 >
-> This step is only useful if this project is used with a CMTAT version requiring approval
+> This step is only useful if this project is used with a CMTAT version requiring the standard ERC-20 approval.
 
 Approve the adapter to spend your tokens (required before bridging):
 
