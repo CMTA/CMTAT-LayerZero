@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.20;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
-
 import {OFTAdapter} from "@layerzerolabs/oft-evm/contracts/OFTAdapter.sol";
 
-import {IERC3643Mint, IERC3643Burn} from "CMTAT/interfaces/tokenization/IERC3643Partial.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+import {IERC7802} from "@openzeppelin/contracts/interfaces/draft-IERC7802.sol";
 
-contract LayerZeroAdapter is OFTAdapter, Pausable {
+contract LayerZeroAdapterERC7802 is OFTAdapter, Pausable {
     constructor(address _token, address _lzEndpoint, address _delegate)
         OFTAdapter(_token, _lzEndpoint, _delegate)
         Ownable(_delegate)
@@ -22,7 +21,7 @@ contract LayerZeroAdapter is OFTAdapter, Pausable {
     {
         (amountSentLD, amountReceivedLD) = _debitView(_amountLD, _minAmountLD, _dstEid);
 
-        IERC3643Burn(address(innerToken)).burn(_from, amountSentLD);
+        IERC7802(address(innerToken)).crosschainBurn(_from, amountSentLD);
     }
 
     function _credit(address _to, uint256 _amountLD, uint32)
@@ -32,7 +31,7 @@ contract LayerZeroAdapter is OFTAdapter, Pausable {
         returns (uint256 amountReceivedLD)
     {
         amountReceivedLD = _amountLD;
-        IERC3643Mint(address(innerToken)).mint(_to, _amountLD);
+        IERC7802(address(innerToken)).crosschainMint(_to, _amountLD);
     }
 
     function pause() external onlyOwner {
