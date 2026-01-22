@@ -13,6 +13,7 @@ A comprehensive integration of CMTAT (Capital Markets and Technology Association
 - [Deployment Guide](#deployment-guide)
 - [Usage](#usage)
 - [Tracking Transactions](#tracking-transactions)
+  - [Handling Failed Transactions on Destination Chain](#handling-failed-transactions-on-destination-chain)
 - [Project Structure](#project-structure)
 - [Scripts Reference](#scripts-reference)
 
@@ -226,6 +227,39 @@ Made with CMTAT [v3.1.0](https://github.com/CMTA/CMTAT/releases/tag/v3.1.0)
    - Tokens are minted via `crosschainMint()`
    - Recipient receives the tokens
 
+### Handling Failed Transactions on Destination Chain
+
+In rare cases, a transaction may fail on the destination chain after tokens have already been burned on the source chain. This can happen due to:
+
+- Insufficient gas on the destination chain
+- Contract execution errors
+- Network congestion or LayerZero message delivery issues
+- Contract paused
+
+**What happens**: Tokens are burned on the source chain but not minted on the destination chain, leaving the tokens in a "stuck" state.
+
+**Recovery options**:
+
+1. **Check LayerZero Scan**: First, verify the transaction status on [LayerZero Scan](https://testnet.layerzeroscan.com/). Look for the message status - if it shows as "delivered" but tokens weren't minted, there may be an execution error.
+
+2. **Retry the mint operation**: If the LayerZero message was successfully delivered but the mint failed, you may need to manually trigger the mint operation. This typically requires:
+   - Access to the adapter contract on the destination chain
+   - The original message payload and nonce
+   - Sufficient gas to execute the mint
+
+3. **Contact support**: If automatic recovery is not possible, you may need to:
+   - Contact the LayerZero team through their [Discord](https://discord.gg/layerzero) or support channels
+   - Provide the transaction hash from the source chain
+   - Provide the message GUID from LayerZero Scan
+
+4. **Prevention**: To minimize the risk of failed transactions:
+   - Ensure sufficient native tokens on both source and destination chains
+   - Monitor gas prices and network conditions
+   - Use appropriate gas limits in your transaction options
+   - Test thoroughly on testnets before mainnet deployment
+
+> **Important**: Always monitor your cross-chain transactions on LayerZero Scan to catch any issues early. Failed transactions may require manual intervention or support from LayerZero.
+
 ## Project Structure
 
 ```
@@ -291,7 +325,7 @@ All scripts can be run using Foundry's `forge script` command. Here's a quick re
 
 **Issue**: Tokens not arriving on destination chain
 
-- **Solution**: Check LayerZero Scan to see if the message was delivered. Delivery can take a few minutes.
+- **Solution**: Check LayerZero Scan to see if the message was delivered. Delivery can take a few minutes. If tokens were burned on the source chain but not minted on the destination, see the [Handling Failed Transactions](#handling-failed-transactions-on-destination-chain) section above.
 
 ## Additional Resources
 
