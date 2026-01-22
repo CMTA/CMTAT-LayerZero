@@ -7,7 +7,7 @@ settings:
 importers:
 
   .:
-    dependencies:
+    devDependencies:
       '@layerzerolabs/lz-evm-messagelib-v2':
         specifier: ^3.0.154
         version: 3.0.154(@axelar-network/axelar-gmp-sdk-solidity@5.10.0)(@chainlink/contracts-ccip@0.7.6(ethers@5.8.0))(@eth-optimism/contracts@0.6.0(ethers@5.8.0))(@layerzerolabs/lz-evm-protocol-v2@3.0.154(@openzeppelin/contracts-upgradeable@5.5.0(@openzeppelin/contracts@5.5.0))(@openzeppelin/contracts@5.5.0)(hardhat-deploy@0.12.4)(solidity-bytes-utils@0.8.4))(@layerzerolabs/lz-evm-v1-0.7@3.0.154(@openzeppelin/contracts-upgradeable@5.5.0(@openzeppelin/contracts@5.5.0))(@openzeppelin/contracts@5.5.0)(hardhat-deploy@0.12.4))(@openzeppelin/contracts-upgradeable@5.5.0(@openzeppelin/contracts@5.5.0))(@openzeppelin/contracts@5.5.0)(hardhat-deploy@0.12.4)(solidity-bytes-utils@0.8.4)
@@ -17,6 +17,12 @@ importers:
       '@layerzerolabs/lz-evm-v1-0.7':
         specifier: ^3.0.154
         version: 3.0.154(@openzeppelin/contracts-upgradeable@5.5.0(@openzeppelin/contracts@5.5.0))(@openzeppelin/contracts@5.5.0)(hardhat-deploy@0.12.4)
+      '@layerzerolabs/oapp-evm':
+        specifier: ^0.4.1
+        version: 0.4.1(bd720325ef78c5b40d213805e82b03ef)
+      '@layerzerolabs/oft-evm':
+        specifier: ^4.0.1
+        version: 4.0.1(7a2905dfa82686a8c8ebef19134eaee2)
       '@layerzerolabs/test-devtools-evm-foundry':
         specifier: ^8.0.1
         version: 8.0.1(5ccab36d93c334f1db6e42a5b1d102d2)
@@ -29,13 +35,6 @@ importers:
       solidity-bytes-utils:
         specifier: ^0.8.4
         version: 0.8.4
-    devDependencies:
-      '@layerzerolabs/oapp-evm':
-        specifier: ^0.4.1
-        version: 0.4.1(bd720325ef78c5b40d213805e82b03ef)
-      '@layerzerolabs/oft-evm':
-        specifier: ^4.0.1
-        version: 4.0.1(7a2905dfa82686a8c8ebef19134eaee2)
 
 packages:
 

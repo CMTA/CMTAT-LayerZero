@@ -1,8 +1,10 @@
 # CMTAT LayerZero Integration
 
-A comprehensive integration of CMTAT (Compliant Multi-Token Asset Token) with LayerZero Protocol for seamless cross-chain token transfers. This project enables CMTAT tokens to be bridged across multiple blockchain networks using LayerZero's OFT (Omnichain Fungible Token) standard.
+A comprehensive integration of CMTAT (Capital Markets and Technology Association Token) with [LayerZero](https://layerzero.network) Protocol for seamless cross-chain token transfers. This project enables CMTAT tokens to be bridged across multiple blockchain networks using [LayerZero's OFT](https://docs.layerzero.network/v2/developers/evm/oft/quickstart) (Omnichain Fungible Token) standard. 
 
-## 📋 Table of Contents
+> **Note**: This project has not undergone an audit and is provided as-is without any warranties.
+
+## Table of Contents
 
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
@@ -14,26 +16,30 @@ A comprehensive integration of CMTAT (Compliant Multi-Token Asset Token) with La
 - [Project Structure](#project-structure)
 - [Scripts Reference](#scripts-reference)
 
-## 🎯 Overview
+## Overview
 
-This project provides a LayerZero adapter for CMTAT tokens, enabling cross-chain transfers between supported networks. The adapter implements the OFT (Omnichain Fungible Token) standard, allowing tokens to be burned on the source chain and minted on the destination chain.
+This project provides a LayerZero adapter for [CMTAT](https://github.com/CMTA/CMTAT/) tokens, enabling cross-chain transfers between supported networks. The adapter implements the OFT (Omnichain Fungible Token) standard, allowing tokens to be burned on the source chain and minted on the destination chain.
 
 ### Key Features
 
 - **Cross-Chain Token Transfers**: Seamlessly bridge CMTAT tokens between different blockchain networks
 - **LayerZero Integration**: Built on LayerZero V2 protocol for secure and efficient cross-chain messaging
-- **CMTAT Compatibility**: Full integration with CMTAT's cross-chain burn/mint functionality
+- **CMTAT Compatibility**: Full integration with CMTAT's cross-chain burn/mint functionality build on [ERC-7802](https://eips.ethereum.org/EIPS/eip-7802)
 - **Automated Scripts**: Ready-to-use Foundry scripts for deployment and operations
 
-## 🔧 Prerequisites
+## Prerequisites
 
 Before you begin, ensure you have the following installed:
 
+- CMTAT [v3.2.0-rc0](https://github.com/CMTA/CMTAT/releases/tag/v3.2.0-rc0)
 - [Foundry](https://book.getfoundry.sh/getting-started/installation) (latest version)
 - [Node.js](https://nodejs.org/) (v18 or higher)
 - [pnpm](https://pnpm.io/) (v10.13.1 or higher)
 
 ### Environment Variables
+
+> Don't use it for production, only for testing.
+> See [getfoundry.sh - Key Management](https://getfoundry.sh/guides/best-practices/key-management/)  to securely broadcasting transactions through a script.
 
 Create a `.env` file by running `cp .env.example .env` in the root directory with the following variables:
 
@@ -42,7 +48,7 @@ PRIVATE_KEY=your_private_key_here
 ETHERSCAN_TOKEN=your_etherscan_api_key_here
 ```
 
-## 📦 Installation
+## Installation
 
 1. **Clone the repository** (including submodules):
 
@@ -63,13 +69,13 @@ pnpm install
 forge build
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 ### Foundry Configuration
 
 The project uses Foundry with the following key settings in `foundry.toml`:
 
-- **Solidity Version**: 0.8.33
+- **Solidity Version**: [0.8.33](https://docs.soliditylang.org/en/v0.8.33/)
 - **EVM Version**: Prague
 - **Optimizer Runs**: 200
 - **Sparse Mode**: Enabled (for faster compilation)
@@ -93,7 +99,7 @@ Chain-specific settings (LayerZero endpoints and EIDs) are defined in `script/ut
 2. Add the corresponding EID (Endpoint ID)
 3. Update the mappings in the `Constants` contract
 
-## 🚀 Deployment Guide
+## Deployment Guide
 
 > Each command first asks for the chain name. You can use the chain names defined in `foundry.toml`.
 
@@ -146,7 +152,7 @@ pnpm run wire -- --broadcast --verify
 
 This sets up peer connections between the adapters, enabling cross-chain communication.
 
-## 💻 Usage
+## Usage
 
 ### Minting Tokens
 
@@ -156,7 +162,11 @@ Mint tokens on a specific chain:
 pnpm run token:mint -- --broadcast
 ```
 
-### Approving Tokens
+### Approving Tokens (if relevant)
+
+> CMTAT Standard version does not require approval to perform burn/mint or crosschainmint/crosschainburn.
+>
+> This step is only useful if this project is used with a CMTAT version requiring the standard ERC-20 approval.
 
 Approve the adapter to spend your tokens (required before bridging):
 
@@ -181,7 +191,7 @@ This will:
 
 **Note**: The amount is specified without decimals. The script automatically applies the token's decimal places (6 decimals in this case).
 
-## 📊 Tracking Transactions
+## Tracking Transactions
 
 ### LayerZero Scan
 
@@ -194,6 +204,8 @@ All cross-chain transactions can be tracked on [LayerZero Scan](https://testnet.
 **Example contracts**: [deployments.json](./deployments.json)
 
 **Example transaction**: [testnet.layerzeroscan.com/tx/0xd2182b0094d015e6670539e9206bbb141d69c1c179e5a544c1b24d6d8e10c84f](https://testnet.layerzeroscan.com/tx/0xd2182b0094d015e6670539e9206bbb141d69c1c179e5a544c1b24d6d8e10c84f)
+
+Made with CMTAT [v3.1.0](https://github.com/CMTA/CMTAT/releases/tag/v3.1.0)
 
 ### Transaction Flow
 
@@ -214,7 +226,7 @@ All cross-chain transactions can be tracked on [LayerZero Scan](https://testnet.
    - Tokens are minted via `crosschainMint()`
    - Recipient receives the tokens
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 CMTAT-LayerZero/
@@ -240,7 +252,7 @@ CMTAT-LayerZero/
 └── package.json                  # Node.js dependencies
 ```
 
-## 📜 Scripts Reference
+## Scripts Reference
 
 ### Available Scripts
 
@@ -261,15 +273,15 @@ All scripts can be run using Foundry's `forge script` command. Here's a quick re
 - **Amounts**: Specify amounts without decimals (the script applies decimals automatically)
 - **Broadcast flag**: Use `--broadcast` to actually send transactions (omit for dry-run)
 
-## 🔒 Security Considerations
+## Security Considerations
 
-1. **Private Keys**: Never expose your private keys. Use environment variables or hardware wallets
+1. **Private Keys**: Never expose your private keys. The `.env` file here used in this project should not be used for production. See [getfoundry.sh - Key Management](https://getfoundry.sh/guides/best-practices/key-management/)
 2. **Gas Fees**: Ensure you have sufficient native tokens for gas and LayerZero messaging fees
 3. **Approvals**: Only approve the adapter when necessary, and consider using time-limited approvals
 4. **Testing**: Always test on testnets before deploying to mainnet
 5. **Access Control**: The adapter requires `CROSS_CHAIN_ROLE` on the CMTAT token - ensure proper access control
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -281,17 +293,13 @@ All scripts can be run using Foundry's `forge script` command. Here's a quick re
 
 - **Solution**: Check LayerZero Scan to see if the message was delivered. Delivery can take a few minutes.
 
-## 📚 Additional Resources
+## Additional Resources
 
 - [LayerZero Documentation](https://docs.layerzero.network/)
 - [CMTAT Documentation](https://github.com/CMTA/CMTAT)
 - [Foundry Book](https://book.getfoundry.sh/)
 - [LayerZero Scan](https://testnet.layerzeroscan.com/)
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please ensure your code follows the project's style guidelines and includes appropriate tests.
-
----
-
-**Note**: This project is for testnet use. Always verify contracts and test thoroughly before any mainnet deployment.
