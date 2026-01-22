@@ -5,7 +5,7 @@ import "./utils/BaseScript.s.sol";
 
 import {CMTATStandalone} from "CMTAT/deployment/CMTATStandalone.sol";
 
-import {LayerZeroAdapter} from "../src/LayerZeroAdapter.sol";
+import {LayerZeroAdapterERC7802} from "../src/LayerZeroAdapterERC7802.sol";
 
 contract DeployAdapter is BaseScript {
     function exec(string memory chain) public override loadPk {
@@ -18,7 +18,8 @@ contract DeployAdapter is BaseScript {
         CMTATStandalone cmtat = CMTATStandalone(readContractAddress(chain, "CMTATStandalone"));
 
         vm.startBroadcast(pk);
-        LayerZeroAdapter adapter = new LayerZeroAdapter(address(cmtat), getLayerZeroEndpoint(chain), admin);
+        LayerZeroAdapterERC7802 adapter =
+            new LayerZeroAdapterERC7802(address(cmtat), getLayerZeroEndpoint(chain), admin);
         cmtat.grantRole(cmtat.CROSS_CHAIN_ROLE(), address(adapter));
         vm.stopBroadcast();
 

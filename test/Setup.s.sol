@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 
-import {LayerZeroAdapter} from "script/DeployAdapter.s.sol";
+import {LayerZeroAdapterERC7802} from "script/DeployAdapter.s.sol";
 
 import {CMTATStandalone} from "CMTAT/deployment/CMTATStandalone.sol";
 import {ICMTATConstructor} from "CMTAT/interfaces/technical/ICMTATConstructor.sol";
@@ -17,10 +17,10 @@ contract Setup is Test, TestHelperOz5 {
     uint32 eidB = 2;
 
     CMTATStandalone cmtatA;
-    LayerZeroAdapter adapterA;
+    LayerZeroAdapterERC7802 adapterA;
 
     CMTATStandalone cmtatB;
-    LayerZeroAdapter adapterB;
+    LayerZeroAdapterERC7802 adapterB;
 
     address admin = address(this);
     string chain = "arbitrum-sepolia";
@@ -49,7 +49,7 @@ contract Setup is Test, TestHelperOz5 {
             ),
             ICMTATConstructor.Engine(IRuleEngine(address(0)))
         );
-        adapterA = new LayerZeroAdapter(address(cmtatA), endpoints[eidA], admin);
+        adapterA = new LayerZeroAdapterERC7802(address(cmtatA), endpoints[eidA], admin);
 
         cmtatB = new CMTATStandalone(
             address(0),
@@ -60,7 +60,7 @@ contract Setup is Test, TestHelperOz5 {
             ),
             ICMTATConstructor.Engine(IRuleEngine(address(0)))
         );
-        adapterB = new LayerZeroAdapter(address(cmtatB), endpoints[eidB], admin);
+        adapterB = new LayerZeroAdapterERC7802(address(cmtatB), endpoints[eidB], admin);
 
         cmtatA.grantRole(cmtatA.CROSS_CHAIN_ROLE(), address(adapterA));
         cmtatB.grantRole(cmtatB.CROSS_CHAIN_ROLE(), address(adapterB));
