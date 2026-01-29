@@ -204,4 +204,16 @@ contract SendTokensTest is Setup {
 
         assertGt(msgFee.nativeFee, 0);
     }
+
+    // ============ View Function Tests ============
+
+    function test_tokenReturnsCorrectAddress() public view {
+        assertEq(adapterA.token(), address(cmtatA));
+        assertEq(adapterB.token(), address(cmtatB));
+    }
+
+    function test_approvalRequiredReturnsFalse() public view {
+        assertFalse(adapterA.approvalRequired());
+        assertFalse(adapterB.approvalRequired());
+    }
 }
