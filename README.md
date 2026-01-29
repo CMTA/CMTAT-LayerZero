@@ -16,6 +16,7 @@ A comprehensive integration of CMTAT (Capital Markets and Technology Association
   - [Handling Failed Transactions on Destination Chain](#handling-failed-transactions-on-destination-chain)
 - [Project Structure](#project-structure)
 - [Scripts Reference](#scripts-reference)
+- [Testing](#testing)
 
 ## Overview
 
@@ -141,17 +142,30 @@ This will:
 
 ### Step 2: Deploy LayerZero Adapter
 
-Deploy the LayerZero adapter on the same chain:
+Deploy the LayerZero adapter on the same chain. Choose the script based on your token's interface (see [Adapter Selection](#adapter-selection)):
+
+**Option A: ERC-7802 Adapter (recommended)**
 
 ```bash
 pnpm run deploy:adapter -- --broadcast --verify
 ```
 
-This will:
+This deploys `LayerZeroAdapterERC7802` for tokens implementing ERC-7802.
 
-- Deploy the `LayerZeroAdapterERC7802` contract (see [Adapter Selection](#adapter-selection) for alternatives)
-- Link it to your CMTAT token
-- Grant the `CROSS_CHAIN_ROLE` to the adapter
+**Option B: ERC-3643 Adapter**
+
+```bash
+forge script DeployAdapterERC3643 -s "exec(string)" <chain-name> --broadcast --verify
+```
+
+This deploys `LayerZeroAdapter` for tokens implementing only ERC-3643/IMintableBurnable.
+
+Both scripts will:
+
+- Link the adapter to your CMTAT token
+- Grant the required roles to the adapter:
+  - ERC-7802 adapter: `CROSS_CHAIN_ROLE`
+  - ERC-3643 adapter: `MINTER_ROLE` and `BURNER_ROLE`
 - Save the adapter address to `deployments.json`
 
 ### Step 3: Repeat Steps 1 and 2 for Other Chains
@@ -289,9 +303,10 @@ CMTAT-LayerZero/
 │   ├── LayerZeroAdapter.sol         # Adapter for IMintableBurnable tokens (ERC-3643)
 │   └── LayerZeroAdapterERC7802.sol  # Adapter for ERC-7802 tokens (default)
 ├── script/
-│   ├── DeployToken.s.sol         # Deploy CMTAT token
-│   ├── DeployAdapter.s.sol       # Deploy LayerZero adapter
-│   ├── WireAdapters.s.sol        # Connect adapters across chains
+│   ├── DeployToken.s.sol            # Deploy CMTAT token
+│   ├── DeployAdapter.s.sol          # Deploy ERC-7802 adapter (recommended)
+│   ├── DeployAdapterERC3643.s.sol   # Deploy ERC-3643 adapter
+│   ├── WireAdapters.s.sol           # Connect adapters across chains
 │   ├── Mint.s.sol                # Mint tokens
 │   ├── Approve.s.sol             # Approve adapter spending
 │   ├── SendTokens.s.sol          # Bridge tokens cross-chain
@@ -302,7 +317,12 @@ CMTAT-LayerZero/
 ├── lib/
 │   ├── CMTAT/                    # CMTAT token contracts (submodule)
 │   └── forge-std/                # Foundry standard library
-├── test/                         # Test files
+├── test/
+│   ├── Setup.s.sol              # Shared test setup for cross-chain tests
+│   ├── SendTokens.t.sol         # Cross-chain transfer tests
+│   ├── DeployAdapter.t.sol      # Deployment script tests
+│   └── utils/
+│       └── TestBase.sol         # Shared test helpers (deploy, roles)
 ├── deployments.json              # Deployment addresses
 ├── foundry.toml                  # Foundry configuration
 └── package.json                  # Node.js dependencies
@@ -328,6 +348,34 @@ All scripts can be run using Foundry's `forge script` command. Here's a quick re
 - **Chain names**: Use the chain names defined in `foundry.toml` (e.g., `arbitrum-sepolia`, `mainnet-sepolia`)
 - **Amounts**: Specify amounts without decimals (the script applies decimals automatically)
 - **Broadcast flag**: Use `--broadcast` to actually send transactions (omit for dry-run)
+
+## Testing
+
+Run all tests:
+
+```bash
+forge test
+```
+
+Run specific test files:
+
+```bash
+# Cross-chain transfer tests
+forge test --match-path test/SendTokens.t.sol -v
+
+# Deployment script tests
+forge test --match-path test/DeployAdapter.t.sol -v
+```
+
+### Test Structure
+
+| File | Description |
+|------|-------------|
+| `test/SendTokens.t.sol` | Cross-chain transfer, pause, access control tests |
+| `test/DeployAdapter.t.sol` | Deployment verification for both adapters |
+| `test/utils/TestBase.sol` | Shared helpers: `_deployCMTAT()`, `_deployAdapterERC7802()`, `_deployAdapterERC3643()` |
+
+The shared `TestBase.sol` provides internal functions used by both test files and mirrors the deployment script logic, ensuring consistency between tests and actual deployments.
 
 ## Security Considerations
 

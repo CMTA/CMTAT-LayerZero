@@ -1,18 +1,12 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.20;
 
-import {Test} from "forge-std/Test.sol";
-
 import {LayerZeroAdapterERC7802} from "../src/LayerZeroAdapterERC7802.sol";
-
 import {CMTATStandalone} from "CMTAT/deployment/CMTATStandalone.sol";
-import {ICMTATConstructor} from "CMTAT/interfaces/technical/ICMTATConstructor.sol";
-import {IERC1643CMTAT} from "CMTAT/interfaces/tokenization/draft-IERC1643CMTAT.sol";
-import {IRuleEngine} from "CMTAT/interfaces/engine/IRuleEngine.sol";
 
-import {TestHelperOz5} from "@layerzerolabs/test-devtools-evm-foundry/contracts/TestHelperOz5.sol";
+import {TestBase} from "./utils/TestBase.sol";
 
-contract Setup is Test, TestHelperOz5 {
+contract Setup is TestBase {
     uint32 eidA = 1;
     uint32 eidB = 2;
 
@@ -40,30 +34,13 @@ contract Setup is Test, TestHelperOz5 {
 
         vm.startPrank(admin);
 
-        cmtatA = new CMTATStandalone(
-            address(0),
-            admin,
-            ICMTATConstructor.ERC20Attributes("Token A", "A", 6),
-            ICMTATConstructor.ExtraInformationAttributes(
-                "TOKEN_ID", IERC1643CMTAT.DocumentInfo("Token Terms", "URL", 0), "Token Information"
-            ),
-            ICMTATConstructor.Engine(IRuleEngine(address(0)))
-        );
-        adapterA = new LayerZeroAdapterERC7802(address(cmtatA), endpoints[eidA], admin);
+        // Deploy tokens using shared helper
+        cmtatA = _deployCMTAT(admin, "Token A", "A");
+        cmtatB = _deployCMTAT(admin, "Token B", "B");
 
-        cmtatB = new CMTATStandalone(
-            address(0),
-            admin,
-            ICMTATConstructor.ERC20Attributes("Token B", "B", 6),
-            ICMTATConstructor.ExtraInformationAttributes(
-                "TOKEN_ID", IERC1643CMTAT.DocumentInfo("Token Terms", "URL", 0), "Token Information"
-            ),
-            ICMTATConstructor.Engine(IRuleEngine(address(0)))
-        );
-        adapterB = new LayerZeroAdapterERC7802(address(cmtatB), endpoints[eidB], admin);
-
-        cmtatA.grantRole(cmtatA.CROSS_CHAIN_ROLE(), address(adapterA));
-        cmtatB.grantRole(cmtatB.CROSS_CHAIN_ROLE(), address(adapterB));
+        // Deploy adapters using shared helper
+        adapterA = _deployAdapterERC7802(cmtatA, endpoints[eidA], admin);
+        adapterB = _deployAdapterERC7802(cmtatB, endpoints[eidB], admin);
 
         // Configure and wire the OFTs together
         address[] memory adapters = new address[](2);

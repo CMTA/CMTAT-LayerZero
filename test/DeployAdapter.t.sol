@@ -1,19 +1,13 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.20;
 
-import {Test} from "forge-std/Test.sol";
-
 import {LayerZeroAdapter} from "../src/LayerZeroAdapter.sol";
 import {LayerZeroAdapterERC7802} from "../src/LayerZeroAdapterERC7802.sol";
-
 import {CMTATStandalone} from "CMTAT/deployment/CMTATStandalone.sol";
-import {ICMTATConstructor} from "CMTAT/interfaces/technical/ICMTATConstructor.sol";
-import {IERC1643CMTAT} from "CMTAT/interfaces/tokenization/draft-IERC1643CMTAT.sol";
-import {IRuleEngine} from "CMTAT/interfaces/engine/IRuleEngine.sol";
 
-import {TestHelperOz5} from "@layerzerolabs/test-devtools-evm-foundry/contracts/TestHelperOz5.sol";
+import {TestBase} from "./utils/TestBase.sol";
 
-contract DeployAdapterERC7802Test is Test, TestHelperOz5 {
+contract DeployAdapterERC7802Test is TestBase {
     uint32 eid = 1;
 
     CMTATStandalone cmtat;
@@ -27,20 +21,9 @@ contract DeployAdapterERC7802Test is Test, TestHelperOz5 {
 
         vm.startPrank(admin);
 
-        // Deploy CMTAT token
-        cmtat = new CMTATStandalone(
-            address(0),
-            admin,
-            ICMTATConstructor.ERC20Attributes("Test Token", "TEST", 6),
-            ICMTATConstructor.ExtraInformationAttributes(
-                "TOKEN_ID", IERC1643CMTAT.DocumentInfo("Token Terms", "URL", 0), "Token Information"
-            ),
-            ICMTATConstructor.Engine(IRuleEngine(address(0)))
-        );
-
-        // Deploy adapter (simulating DeployAdapter.s.sol)
-        adapter = new LayerZeroAdapterERC7802(address(cmtat), endpoints[eid], admin);
-        cmtat.grantRole(cmtat.CROSS_CHAIN_ROLE(), address(adapter));
+        // Deploy using shared helpers (simulating DeployAdapter.s.sol)
+        cmtat = _deployCMTAT(admin, "Test Token", "TEST");
+        adapter = _deployAdapterERC7802(cmtat, endpoints[eid], admin);
 
         vm.stopPrank();
     }
@@ -53,7 +36,7 @@ contract DeployAdapterERC7802Test is Test, TestHelperOz5 {
     }
 
     function test_crossChainRoleGranted() public view {
-        assertTrue(cmtat.hasRole(cmtat.CROSS_CHAIN_ROLE(), address(adapter)));
+        _verifyAdapterERC7802Roles(cmtat, address(adapter));
     }
 
     function test_approvalRequiredReturnsFalse() public view {
@@ -66,14 +49,12 @@ contract DeployAdapterERC7802Test is Test, TestHelperOz5 {
         cmtat.mint(admin, 1000e6);
 
         // Verify adapter has permission to burn via crosschainBurn
-        // This is called internally by _debit, but we verify the role is set
-        assertTrue(cmtat.hasRole(cmtat.CROSS_CHAIN_ROLE(), address(adapter)));
+        _verifyAdapterERC7802Roles(cmtat, address(adapter));
     }
 
-    function test_adapterCanCallCrosschainMint() public {
+    function test_adapterCanCallCrosschainMint() public view {
         // Verify adapter has permission to mint via crosschainMint
-        // This is called internally by _credit, but we verify the role is set
-        assertTrue(cmtat.hasRole(cmtat.CROSS_CHAIN_ROLE(), address(adapter)));
+        _verifyAdapterERC7802Roles(cmtat, address(adapter));
     }
 
     function test_pauseFunctionalityExists() public {
@@ -87,7 +68,7 @@ contract DeployAdapterERC7802Test is Test, TestHelperOz5 {
     }
 }
 
-contract DeployAdapterERC3643Test is Test, TestHelperOz5 {
+contract DeployAdapterERC3643Test is TestBase {
     uint32 eid = 1;
 
     CMTATStandalone cmtat;
@@ -101,22 +82,9 @@ contract DeployAdapterERC3643Test is Test, TestHelperOz5 {
 
         vm.startPrank(admin);
 
-        // Deploy CMTAT token
-        cmtat = new CMTATStandalone(
-            address(0),
-            admin,
-            ICMTATConstructor.ERC20Attributes("Test Token", "TEST", 6),
-            ICMTATConstructor.ExtraInformationAttributes(
-                "TOKEN_ID", IERC1643CMTAT.DocumentInfo("Token Terms", "URL", 0), "Token Information"
-            ),
-            ICMTATConstructor.Engine(IRuleEngine(address(0)))
-        );
-
-        // Deploy adapter (simulating DeployAdapterERC3643.s.sol)
-        // For CMTAT, the minterBurner is the token itself
-        adapter = new LayerZeroAdapter(address(cmtat), address(cmtat), endpoints[eid], admin);
-        cmtat.grantRole(cmtat.MINTER_ROLE(), address(adapter));
-        cmtat.grantRole(cmtat.BURNER_ROLE(), address(adapter));
+        // Deploy using shared helpers (simulating DeployAdapterERC3643.s.sol)
+        cmtat = _deployCMTAT(admin, "Test Token", "TEST");
+        adapter = _deployAdapterERC3643(cmtat, endpoints[eid], admin);
 
         vm.stopPrank();
     }
@@ -128,26 +96,20 @@ contract DeployAdapterERC3643Test is Test, TestHelperOz5 {
         assertEq(adapter.owner(), admin);
     }
 
-    function test_minterRoleGranted() public view {
-        assertTrue(cmtat.hasRole(cmtat.MINTER_ROLE(), address(adapter)));
-    }
-
-    function test_burnerRoleGranted() public view {
-        assertTrue(cmtat.hasRole(cmtat.BURNER_ROLE(), address(adapter)));
+    function test_minterAndBurnerRolesGranted() public view {
+        _verifyAdapterERC3643Roles(cmtat, address(adapter));
     }
 
     function test_approvalRequiredReturnsFalse() public view {
         assertFalse(adapter.approvalRequired());
     }
 
-    function test_adapterCanMint() public {
-        // Verify adapter has permission to mint
-        assertTrue(cmtat.hasRole(cmtat.MINTER_ROLE(), address(adapter)));
+    function test_adapterCanMint() public view {
+        _verifyAdapterERC3643Roles(cmtat, address(adapter));
     }
 
-    function test_adapterCanBurn() public {
-        // Verify adapter has permission to burn
-        assertTrue(cmtat.hasRole(cmtat.BURNER_ROLE(), address(adapter)));
+    function test_adapterCanBurn() public view {
+        _verifyAdapterERC3643Roles(cmtat, address(adapter));
     }
 
     function test_pauseFunctionalityExists() public {
