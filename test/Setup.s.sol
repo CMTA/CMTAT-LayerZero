@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 
-import {LayerZeroAdapterERC7802} from "script/DeployAdapter.s.sol";
+import {LayerZeroAdapterERC7802} from "../src/LayerZeroAdapterERC7802.sol";
 
 import {CMTATStandalone} from "CMTAT/deployment/CMTATStandalone.sol";
 import {ICMTATConstructor} from "CMTAT/interfaces/technical/ICMTATConstructor.sol";
@@ -71,10 +71,9 @@ contract Setup is Test, TestHelperOz5 {
         adapters[1] = address(adapterB);
         this.wireOApps(adapters);
 
-        deal(address(cmtatA), admin, 100 * 10e6);
+        cmtatA.mint(admin, 100 * 10e6);
 
-        cmtatA.approve(address(adapterA), type(uint256).max);
-        cmtatB.approve(address(adapterB), type(uint256).max);
+        vm.stopPrank();
     }
 
     function _afterSetup() public virtual {}
