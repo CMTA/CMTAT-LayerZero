@@ -2,6 +2,8 @@
 
 A comprehensive integration of CMTAT (Capital Markets and Technology Association Token) with [LayerZero](https://layerzero.network) Protocol for seamless cross-chain token transfers. This project enables CMTAT tokens to be bridged across multiple blockchain networks using [LayerZero's OFT](https://docs.layerzero.network/v2/developers/evm/oft/quickstart) (Omnichain Fungible Token) standard. 
 
+This project has been made by [Nox Labs](https://github.com/Nox-Labs) in collaboration with [CMTA](CMTA.ch)
+
 > **Note**: This project has not undergone an audit and is provided as-is without any warranties.
 
 ## Table of Contents
