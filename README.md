@@ -1,6 +1,8 @@
-# CMTAT LayerZero Integration
+# CMTAT LayerZero Integration (ERC-3643 / ERC-7802)     
 
 A comprehensive integration of CMTAT (Capital Markets and Technology Association Token) with [LayerZero](https://layerzero.network) Protocol for seamless cross-chain token transfers. This project enables CMTAT tokens to be bridged across multiple blockchain networks using [LayerZero's OFT](https://docs.layerzero.network/v2/developers/evm/oft/quickstart) (Omnichain Fungible Token) standard. 
+
+This project has been made by [Nox Labs](https://github.com/Nox-Labs) in collaboration with [CMTA](CMTA.ch)
 
 > **Note**: This project has not undergone an audit and is provided as-is without any warranties.
 
@@ -16,6 +18,7 @@ A comprehensive integration of CMTAT (Capital Markets and Technology Association
   - [Handling Failed Transactions on Destination Chain](#handling-failed-transactions-on-destination-chain)
 - [Project Structure](#project-structure)
 - [Scripts Reference](#scripts-reference)
+- [Testing](#testing)
 
 ## Overview
 
@@ -25,8 +28,29 @@ This project provides a LayerZero adapter for [CMTAT](https://github.com/CMTA/CM
 
 - **Cross-Chain Token Transfers**: Seamlessly bridge CMTAT tokens between different blockchain networks
 - **LayerZero Integration**: Built on LayerZero V2 protocol for secure and efficient cross-chain messaging
-- **CMTAT Compatibility**: Full integration with CMTAT's cross-chain burn/mint functionality build on [ERC-7802](https://eips.ethereum.org/EIPS/eip-7802)
+- **ERC-3643 / ERC-7802**: Compatible with any tokens implementing ERC-3643 (`LayerZeroAdapter`) or ERC-7802 (`LayerZeroAdapterERC7802`)
+- **CMTAT Compatibility**: Full integration with CMTAT's standard burn/mint functionality build on [ERC-3643](https://eips.ethereum.org/EIPS/eip-3643) as well as cross-chain burn/mint functionality build on [ERC-7802](https://eips.ethereum.org/EIPS/eip-7802). 
 - **Automated Scripts**: Ready-to-use Foundry scripts for deployment and operations
+
+### Adapter Selection
+
+This project provides two adapter implementations. Choose the one that matches your token's interface:
+
+| Adapter | Base Class | Token Interface | Constructor Parameters |
+|---------|------------|-----------------|----------------------|
+| `LayerZeroAdapterERC7802` | `OFTAdapter` | ERC-7802 (`crosschainMint`/`crosschainBurn`) | `(token, lzEndpoint, delegate)` |
+| `LayerZeroAdapter` | `MintBurnOFTAdapter` | `IMintableBurnable` (`mint`/`burn`) | `(token, minterBurner, lzEndpoint, delegate)` |
+
+**When to use which:**
+
+All CMTAT deployment versions implement the ERC-3643 interface for burning and minting. Some deployment versions also implement ERC-7802 for cross-chain transfers. If ERC-7802 is supported, the `LayerZeroAdapterERC7802` is the preferred way to use LayerZero.
+
+- **`LayerZeroAdapterERC7802` (recommended)**: Use with CMTAT tokens that implement [ERC-7802](https://eips.ethereum.org/EIPS/eip-7802).
+- **`LayerZeroAdapter`**: Use with tokens implementing only the `IMintableBurnable` interface (ERC-3643). For CMTAT, the `minterBurner` parameter is the token address itself.
+
+Both adapters include:
+- **Pause functionality**: `pause()` and `unpause()` functions (owner only) to halt cross-chain transfers in emergencies
+- **No approval required**: `approvalRequired()` returns `false` since they use mint/burn instead of transferFrom
 
 ## Prerequisites
 
@@ -120,17 +144,30 @@ This will:
 
 ### Step 2: Deploy LayerZero Adapter
 
-Deploy the LayerZero adapter on the same chain:
+Deploy the LayerZero adapter on the same chain. Choose the script based on your token's interface (see [Adapter Selection](#adapter-selection)):
+
+**Option A: ERC-7802 Adapter (recommended)**
 
 ```bash
 pnpm run deploy:adapter -- --broadcast --verify
 ```
 
-This will:
+This deploys `LayerZeroAdapterERC7802` for tokens implementing ERC-7802.
 
-- Deploy the `LayerZeroAdapter` contract
-- Link it to your CMTAT token
-- Grant the `CROSS_CHAIN_ROLE` to the adapter
+**Option B: ERC-3643 Adapter**
+
+```bash
+forge script DeployAdapterERC3643 -s "exec(string)" <chain-name> --broadcast --verify
+```
+
+This deploys `LayerZeroAdapter` for tokens implementing only ERC-3643/IMintableBurnable.
+
+Both scripts will:
+
+- Link the adapter to your CMTAT token
+- Grant the required roles to the adapter:
+  - ERC-7802 adapter: `CROSS_CHAIN_ROLE`
+  - ERC-3643 adapter: `MINTER_ROLE` and `BURNER_ROLE`
 - Save the adapter address to `deployments.json`
 
 ### Step 3: Repeat Steps 1 and 2 for Other Chains
@@ -265,11 +302,13 @@ In rare cases, a transaction may fail on the destination chain after tokens have
 ```
 CMTAT-LayerZero/
 ├── src/
-│   └── LayerZeroAdapter.sol      # Main adapter contract
+│   ├── LayerZeroAdapter.sol         # Adapter for IMintableBurnable tokens (ERC-3643)
+│   └── LayerZeroAdapterERC7802.sol  # Adapter for ERC-7802 tokens (default)
 ├── script/
-│   ├── DeployToken.s.sol         # Deploy CMTAT token
-│   ├── DeployAdapter.s.sol       # Deploy LayerZero adapter
-│   ├── WireAdapters.s.sol        # Connect adapters across chains
+│   ├── DeployToken.s.sol            # Deploy CMTAT token
+│   ├── DeployAdapter.s.sol          # Deploy ERC-7802 adapter (recommended)
+│   ├── DeployAdapterERC3643.s.sol   # Deploy ERC-3643 adapter
+│   ├── WireAdapters.s.sol           # Connect adapters across chains
 │   ├── Mint.s.sol                # Mint tokens
 │   ├── Approve.s.sol             # Approve adapter spending
 │   ├── SendTokens.s.sol          # Bridge tokens cross-chain
@@ -280,7 +319,12 @@ CMTAT-LayerZero/
 ├── lib/
 │   ├── CMTAT/                    # CMTAT token contracts (submodule)
 │   └── forge-std/                # Foundry standard library
-├── test/                         # Test files
+├── test/
+│   ├── Setup.s.sol              # Shared test setup for cross-chain tests
+│   ├── SendTokens.t.sol         # Cross-chain transfer tests
+│   ├── DeployAdapter.t.sol      # Deployment script tests
+│   └── utils/
+│       └── TestBase.sol         # Shared test helpers (deploy, roles)
 ├── deployments.json              # Deployment addresses
 ├── foundry.toml                  # Foundry configuration
 └── package.json                  # Node.js dependencies
@@ -307,13 +351,44 @@ All scripts can be run using Foundry's `forge script` command. Here's a quick re
 - **Amounts**: Specify amounts without decimals (the script applies decimals automatically)
 - **Broadcast flag**: Use `--broadcast` to actually send transactions (omit for dry-run)
 
+## Testing
+
+Run all tests:
+
+```bash
+forge test
+```
+
+Run specific test files:
+
+```bash
+# Cross-chain transfer tests
+forge test --match-path test/SendTokens.t.sol -v
+
+# Deployment script tests
+forge test --match-path test/DeployAdapter.t.sol -v
+```
+
+### Test Structure
+
+| File | Description |
+|------|-------------|
+| `test/SendTokens.t.sol` | Cross-chain transfer, pause, access control tests |
+| `test/DeployAdapter.t.sol` | Deployment verification for both adapters |
+| `test/utils/TestBase.sol` | Shared helpers: `_deployCMTAT()`, `_deployAdapterERC7802()`, `_deployAdapterERC3643()` |
+
+The shared `TestBase.sol` provides internal functions used by both test files and mirrors the deployment script logic, ensuring consistency between tests and actual deployments.
+
 ## Security Considerations
 
 1. **Private Keys**: Never expose your private keys. The `.env` file here used in this project should not be used for production. See [getfoundry.sh - Key Management](https://getfoundry.sh/guides/best-practices/key-management/)
 2. **Gas Fees**: Ensure you have sufficient native tokens for gas and LayerZero messaging fees
-3. **Approvals**: Only approve the adapter when necessary, and consider using time-limited approvals
-4. **Testing**: Always test on testnets before deploying to mainnet
-5. **Access Control**: The adapter requires `CROSS_CHAIN_ROLE` on the CMTAT token - ensure proper access control
+3. **Testing**: Always test on testnets before deploying to mainnet
+4. **Access Control**:
+   1. The adapter requires `CROSS_CHAIN_ROLE` on the CMTAT token - ensure proper access control. If the adapter has a vulnerability or a bug, revoke the role directly on CMTAT or put the token in the pause state. `crosschainMint` and `crosschainBurn` will revert if CMTAT is in the pause state.
+   2. Alternatively, ERC-20 standard approval or time-based approval can be added by modifying CMTAT codebase. In this case, each adapter user will need to approve the adapter to allow it to spend token on their behalf, which will reduce risk in case if the adapter is compromised.
+5. **Adapter Pause**: Both adapters include `pause()` and `unpause()` functions (owner only). When paused, all cross-chain transfers are blocked.
+
 
 ## Troubleshooting
 
