@@ -6,14 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 This changelog is based on the release made on [CMTA fork](https://github.com/CMTA/CMTAT-LayerZero).
 
-## [0.1.0] - 2026-01-30
+## [0.1.0]
 
 ### Added
 
 #### Adapters
 - `LayerZeroAdapterERC7802`: OFT adapter for ERC-7802 tokens (`crosschainMint`/`crosschainBurn`)
 - `LayerZeroAdapter`: OFT adapter for ERC-3643 tokens (`mint`/`burn`)
-- Pause functionality on both adapters
+- Pause functionality on both adapters through `PauseModule`
 
 #### Deployment Scripts
 - `DeployAdapter.s.sol`: Deploy ERC-7802 adapter
