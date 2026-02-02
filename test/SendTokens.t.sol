@@ -17,11 +17,7 @@ contract SendTokensTest is Setup {
 
     // ============ Helpers ============
 
-    function _buildSendParam(uint32 dstEid, address to, uint256 amount)
-        internal
-        pure
-        returns (SendParam memory)
-    {
+    function _buildSendParam(uint32 dstEid, address to, uint256 amount) internal pure returns (SendParam memory) {
         return SendParam({
             dstEid: dstEid,
             to: bytes32(uint256(uint160(to))),

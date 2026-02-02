@@ -24,7 +24,7 @@ contract LayerZeroAdapter is MintBurnOFTAdapter, PauseModule {
     /*//////////////////////////////////////////////////////////////
                          INTERNAL
     //////////////////////////////////////////////////////////////*/
-    
+
     /* ==== LayerZero === */
     function _debit(address _from, uint256 _amountLD, uint256 _minAmountLD, uint32 _dstEid)
         internal

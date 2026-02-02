@@ -26,8 +26,8 @@ contract LayerZeroAdapterERC7802 is OFTAdapter, PauseModule {
 
     /* ==== LayerZero === */
     /**
-    * Required because the implementation in OFTAdapter returns true
-    */
+     * Required because the implementation in OFTAdapter returns true
+     */
     function approvalRequired() external pure override(OFTAdapter) returns (bool) {
         return false;
     }
@@ -35,7 +35,7 @@ contract LayerZeroAdapterERC7802 is OFTAdapter, PauseModule {
     /*//////////////////////////////////////////////////////////////
                                Internal
     //////////////////////////////////////////////////////////////*/
-          
+
     /* ==== LayerZero === */
     function _debit(address _from, uint256 _amountLD, uint256 _minAmountLD, uint32 _dstEid)
         internal
