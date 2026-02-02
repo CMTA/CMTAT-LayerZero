@@ -10,7 +10,7 @@ import {OFTAdapter} from "@layerzerolabs/oft-evm/contracts/OFTAdapter.sol";
 import {PauseModule} from "./modules/PauseModule.sol";
 
 /**
- * @title LayerZeroAdapter
+ * @title LayerZeroAdapterERC7802
  * @notice LayerZero OFT adapter for tokens implementing ERC-7802
  * @dev The minterBurner address must have crosschain mint/burn permissions on the token.
  */

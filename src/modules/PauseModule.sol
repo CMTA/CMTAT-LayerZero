@@ -4,6 +4,10 @@ pragma solidity ^0.8.20;
 /* ==== OpenZeppelin === */
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 
+/**
+ * @title PauseModule
+ * @notice Public-facing functions for placing contracts into a paused state.
+ */
 abstract contract PauseModule is Pausable {
     modifier onlyPauseManager() {
         _authorizePause();

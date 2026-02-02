@@ -54,6 +54,28 @@ Both adapters include:
 - **Pause functionality**: `pause()` and `unpause()` functions (owner only) to halt cross-chain transfers in emergencies
 - **No approval required**: `approvalRequired()` returns `false` since they use mint/burn instead of transferFrom
 
+### UML
+
+This section contains the schema (UML) of the different contracts.
+
+#### PauseModule
+
+Public-facing functions for placing contracts into a paused state.
+
+![PauseModule](./doc/uml/PauseModule.png)
+
+#### LayerZeroAdapterERC7802
+
+LayerZero OFT adapter for tokens implementing ERC-7802
+
+![LayzerZeroAdapterERC7802](./doc/uml/LayzerZeroAdapterERC7802.png)
+
+#### LayerZeroAdapter
+
+LayerZero OFT adapter for tokens implementing LayerZero`IMintableBurnable` (ERC-3643 compatible)
+
+![LayerZeroAdapter](./doc/uml/LayerZeroAdapter.png)
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
