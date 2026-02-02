@@ -38,19 +38,43 @@ This project provides two adapter implementations. Choose the one that matches y
 
 | Adapter | Base Class | Token Interface | Constructor Parameters |
 |---------|------------|-----------------|----------------------|
-| `LayerZeroAdapterERC7802` | `OFTAdapter` | ERC-7802 (`crosschainMint`/`crosschainBurn`) | `(token, lzEndpoint, delegate)` |
+| `LayerZeroAdapterERC7802` | `OFTAdapter` | ERC-7802 (`crosschainMint`/`crosschainBurn`) | `(token`, `minterBurner`, `lzEndpoint, delegate)` |
 | `LayerZeroAdapter` | `MintBurnOFTAdapter` | `IMintableBurnable` (`mint`/`burn`) | `(token, minterBurner, lzEndpoint, delegate)` |
+
+For CMTAT, the `minterBurner` parameter is the token address itself.
 
 **When to use which:**
 
 All CMTAT deployment versions implement the ERC-3643 interface for burning and minting. Some deployment versions also implement ERC-7802 for cross-chain transfers. If ERC-7802 is supported, the `LayerZeroAdapterERC7802` is the preferred way to use LayerZero.
 
 - **`LayerZeroAdapterERC7802` (recommended)**: Use with CMTAT tokens that implement [ERC-7802](https://eips.ethereum.org/EIPS/eip-7802).
-- **`LayerZeroAdapter`**: Use with tokens implementing only the `IMintableBurnable` interface (ERC-3643). For CMTAT, the `minterBurner` parameter is the token address itself.
+- **`LayerZeroAdapter`**: Use with tokens implementing only the `IMintableBurnable` interface (ERC-3643). 
 
 Both adapters include:
 - **Pause functionality**: `pause()` and `unpause()` functions (owner only) to halt cross-chain transfers in emergencies
 - **No approval required**: `approvalRequired()` returns `false` since they use mint/burn instead of transferFrom
+
+### UML
+
+This section contains the schema (UML) of the different contracts.
+
+#### PauseModule
+
+Public-facing functions for placing contracts into a paused state.
+
+![PauseModule](./doc/uml/PauseModule.png)
+
+#### LayerZeroAdapterERC7802
+
+LayerZero OFT adapter for tokens implementing ERC-7802
+
+![LayzerZeroAdapterERC7802](./doc/uml/LayzerZeroAdapterERC7802.png)
+
+#### LayerZeroAdapter
+
+LayerZero OFT adapter for tokens implementing LayerZero`IMintableBurnable` (ERC-3643 compatible)
+
+![LayerZeroAdapter](./doc/uml/LayerZeroAdapter.png)
 
 ## Prerequisites
 

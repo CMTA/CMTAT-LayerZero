@@ -45,7 +45,11 @@ contract FileHelpers is Constants {
         return contractAddress;
     }
 
-    function readContractAddressNoRevert(string memory chain, string memory contractName) public view returns (address) {
+    function readContractAddressNoRevert(string memory chain, string memory contractName)
+        public
+        view
+        returns (address)
+    {
         try this.readContractAddress(chain, contractName) returns (address contractAddress) {
             return contractAddress;
         } catch {
@@ -54,7 +58,8 @@ contract FileHelpers is Constants {
     }
 
     function readArrayOfAddresses(string memory chain, string memory prefix)
-        public view
+        public
+        view
         returns (AddressDataFromFile[] memory addresses)
     {
         _checkFileExist();
@@ -106,7 +111,7 @@ contract FileHelpers is Constants {
 
     /* ============== PRIVATE ============== */
 
-    function _checkFileExist() private view{
+    function _checkFileExist() private view {
         bool isFileExist = vm.exists(pathToContracts);
 
         require(isFileExist, string.concat("File with path ", pathToContracts, " does not exist in project"));
