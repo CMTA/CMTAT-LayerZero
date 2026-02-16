@@ -4,3 +4,4 @@ broadcast
 docs/
 node_modules/
 .env
+.wake

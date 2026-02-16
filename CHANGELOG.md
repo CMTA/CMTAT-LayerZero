@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 This changelog is based on the release made on [CMTA fork](https://github.com/CMTA/CMTAT-LayerZero).
 
+## [0.2.0]
+
+### Changed
+
+- Update README
+- Update CMTAT library to CMTAT [v.3.2.0-rc2](https://github.com/CMTA/CMTAT/releases/tag/v3.2.0-rc2)
+
 ## [0.1.0]
 
 ### Added
