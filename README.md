@@ -1,8 +1,8 @@
 # CMTAT LayerZero Integration (ERC-3643 / ERC-7802)     
 
-A comprehensive integration of CMTAT (Capital Markets and Technology Association Token) with [LayerZero](https://layerzero.network) Protocol for seamless cross-chain token transfers. This project enables CMTAT tokens to be bridged across multiple blockchain networks using [LayerZero's OFT](https://docs.layerzero.network/v2/developers/evm/oft/quickstart) (Omnichain Fungible Token) standard. 
+This project integrates [CMTAT](https://github.com/CMTA/CMTAT) (Capital Markets and Technology Association Token) with [LayerZero](https://layerzero.network), a protocol for cross-chain communication, enabling seamless token transfers across multiple EVM-compatible blockchains. Leveraging LayerZero’s [OFT (Omnichain Fungible Token)](https://docs.layerzero.network/v2/developers/evm/oft/quickstart) standard, CMTAT tokens can move easily across chains, increasing liquidity, accessibility, and interoperability for token holders.
 
-This project has been made by [Nox Labs](https://github.com/Nox-Labs) in collaboration with [CMTA](CMTA.ch)
+This project was initially developed by [Nox Labs](https://github.com/Nox-Labs) in collaboration with [CMTA](https://cmta.ch) and [Taurus](https://www.taurushq.com).
 
 > **Note**: This project has not undergone an audit and is provided as-is without any warranties.
 
@@ -309,7 +309,7 @@ In rare cases, a transaction may fail on the destination chain after tokens have
    - Sufficient gas to execute the mint
 
 3. **Contact support**: If automatic recovery is not possible, you may need to:
-   - Contact the LayerZero team through their [Discord](https://discord.gg/layerzero) or support channels
+   - Contact the LayerZero team through their Discord or support channels
    - Provide the transaction hash from the source chain
    - Provide the message GUID from LayerZero Scan
 
