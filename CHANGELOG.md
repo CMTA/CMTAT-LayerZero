@@ -11,7 +11,7 @@ This changelog is based on the release made on [CMTA fork](https://github.com/CM
 ### Changed
 
 - Update README
-- Update CMTAT library to CMTAT v.3.2.0-rc2
+- Update CMTAT library to CMTAT [v.3.2.0-rc2](https://github.com/CMTA/CMTAT/releases/tag/v3.2.0-rc2)
 
 ## [0.1.0]
 
