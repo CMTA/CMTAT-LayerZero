@@ -9,6 +9,7 @@ This project was initially developed by [Nox Labs](https://github.com/Nox-Labs) 
 ## Table of Contents
 
 - [Overview](#overview)
+  - [Ownership Models](#ownership-models)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Configuration](#configuration)
@@ -34,12 +35,14 @@ This project provides a LayerZero adapter for [CMTAT](https://github.com/CMTA/CM
 
 ### Adapter Selection
 
-This project provides two adapter implementations. Choose the one that matches your token's interface:
+This project provides four adapter implementations across two token interfaces and two ownership models:
 
 | Adapter | Base Class | Token Interface | Constructor Parameters |
 |---------|------------|-----------------|----------------------|
-| `LayerZeroAdapterERC7802` | `OFTAdapter` | ERC-7802 (`crosschainMint`/`crosschainBurn`) | `(token`, `minterBurner`, `lzEndpoint, delegate)` |
+| `LayerZeroAdapterERC7802` | `OFTAdapter` | ERC-7802 (`crosschainMint`/`crosschainBurn`) | `(token, lzEndpoint, delegate)` |
+| `LayerZeroAdapterERC7802Ownable2Step` | `LayerZeroAdapterERC7802` | ERC-7802 (`crosschainMint`/`crosschainBurn`) | `(token, lzEndpoint, delegate)` |
 | `LayerZeroAdapter` | `MintBurnOFTAdapter` | `IMintableBurnable` (`mint`/`burn`) | `(token, minterBurner, lzEndpoint, delegate)` |
+| `LayerZeroAdapterOwnable2Step` | `LayerZeroAdapter` | `IMintableBurnable` (`mint`/`burn`) | `(token, minterBurner, lzEndpoint, delegate)` |
 
 For CMTAT, the `minterBurner` parameter is the token address itself.
 
@@ -48,11 +51,27 @@ For CMTAT, the `minterBurner` parameter is the token address itself.
 All CMTAT deployment versions implement the ERC-3643 interface for burning and minting. Some deployment versions also implement ERC-7802 for cross-chain transfers. If ERC-7802 is supported, the `LayerZeroAdapterERC7802` is the preferred way to use LayerZero.
 
 - **`LayerZeroAdapterERC7802` (recommended)**: Use with CMTAT tokens that implement [ERC-7802](https://eips.ethereum.org/EIPS/eip-7802).
-- **`LayerZeroAdapter`**: Use with tokens implementing only the `IMintableBurnable` interface (ERC-3643). 
+- **`LayerZeroAdapter`**: Use with tokens implementing only the `IMintableBurnable` interface (ERC-3643).
+- **`Ownable2Step` variants**: Prefer these over the base variants when a safer ownership transfer process is required. Two-step transfer prevents accidental transfer to an uncontrolled address.
 
-Both adapters include:
+All adapters include:
 - **Pause functionality**: `pause()` and `unpause()` functions (owner only) to halt cross-chain transfers in emergencies
 - **No approval required**: `approvalRequired()` returns `false` since they use mint/burn instead of transferFrom
+
+### Ownership Models
+
+Each adapter family has two ownership variants:
+
+- **`Ownable` variants**: `LayerZeroAdapter` and `LayerZeroAdapterERC7802`
+- **`Ownable2Step` variants**: `LayerZeroAdapterOwnable2Step` and `LayerZeroAdapterERC7802Ownable2Step`
+
+`Ownable2Step` uses a two-step transfer flow:
+1. Current owner calls `transferOwnership(newOwner)`
+2. `newOwner` finalizes with `acceptOwnership()`
+
+This reduces the risk of transferring ownership to an address that cannot operate the adapter.
+
+> **Note**: After `acceptOwnership()`, the new owner must call `setDelegate(newOwner)` on the adapter to sync the LayerZero endpoint delegate. Until this is done, the old owner remains the delegate for OApp configuration on the endpoint.
 
 ### UML
 
@@ -80,7 +99,7 @@ LayerZero OFT adapter for tokens implementing LayerZero`IMintableBurnable` (ERC-
 
 Before you begin, ensure you have the following installed:
 
-- CMTAT [v3.2.0-rc0](https://github.com/CMTA/CMTAT/releases/tag/v3.2.0-rc0)
+- CMTAT [v3.2.0](https://github.com/CMTA/CMTAT/releases/tag/v3.2.0)
 - [Foundry](https://book.getfoundry.sh/getting-started/installation) (latest version)
 - [Node.js](https://nodejs.org/) (v18 or higher)
 - [pnpm](https://pnpm.io/) (v10.13.1 or higher)
@@ -124,7 +143,7 @@ forge build
 
 The project uses Foundry with the following key settings in `foundry.toml`:
 
-- **Solidity Version**: [0.8.33](https://docs.soliditylang.org/en/v0.8.33/)
+- **Solidity Version**: [0.8.34](https://docs.soliditylang.org/en/v0.8.34/)
 - **EVM Version**: Prague
 - **Optimizer Runs**: 200
 - **Sparse Mode**: Enabled (for faster compilation)
@@ -170,7 +189,7 @@ This will:
 
 Deploy the LayerZero adapter on the same chain. Choose the script based on your token's interface (see [Adapter Selection](#adapter-selection)):
 
-**Option A: ERC-7802 Adapter (recommended)**
+**Option A: ERC-7802 Adapter (`Ownable`, recommended)**
 
 ```bash
 pnpm run deploy:adapter -- --broadcast --verify
@@ -178,7 +197,7 @@ pnpm run deploy:adapter -- --broadcast --verify
 
 This deploys `LayerZeroAdapterERC7802` for tokens implementing ERC-7802.
 
-**Option B: ERC-3643 Adapter**
+**Option B: ERC-3643 Adapter (`Ownable`)**
 
 ```bash
 forge script DeployAdapterERC3643 -s "exec(string)" <chain-name> --broadcast --verify
@@ -186,7 +205,23 @@ forge script DeployAdapterERC3643 -s "exec(string)" <chain-name> --broadcast --v
 
 This deploys `LayerZeroAdapter` for tokens implementing only ERC-3643/IMintableBurnable.
 
-Both scripts will:
+**Option C: ERC-7802 Adapter (`Ownable2Step`)**
+
+```bash
+forge script DeployAdapterOwnable2Step -s "exec(string)" <chain-name> --broadcast --verify
+```
+
+This deploys `LayerZeroAdapterERC7802Ownable2Step` for tokens implementing ERC-7802.
+
+**Option D: ERC-3643 Adapter (`Ownable2Step`)**
+
+```bash
+forge script DeployAdapterERC3643Ownable2Step -s "exec(string)" <chain-name> --broadcast --verify
+```
+
+This deploys `LayerZeroAdapterOwnable2Step` for tokens implementing only ERC-3643/IMintableBurnable.
+
+All scripts will:
 
 - Link the adapter to your CMTAT token
 - Grant the required roles to the adapter:
@@ -267,7 +302,7 @@ All cross-chain transactions can be tracked on [LayerZero Scan](https://testnet.
 
 **Example transaction**: [testnet.layerzeroscan.com/tx/0xd2182b0094d015e6670539e9206bbb141d69c1c179e5a544c1b24d6d8e10c84f](https://testnet.layerzeroscan.com/tx/0xd2182b0094d015e6670539e9206bbb141d69c1c179e5a544c1b24d6d8e10c84f)
 
-Made with CMTAT [v3.1.0](https://github.com/CMTA/CMTAT/releases/tag/v3.1.0)
+Made with CMTAT [v3.1.0](https://github.com/CMTA/CMTAT/releases/tag/v3.1.0) (previous version of this project)
 
 ### Transaction Flow
 
@@ -326,16 +361,20 @@ In rare cases, a transaction may fail on the destination chain after tokens have
 ```
 CMTAT-LayerZero/
 ├── src/
-│   ├── LayerZeroAdapter.sol         # Adapter for IMintableBurnable tokens (ERC-3643)
-│   └── LayerZeroAdapterERC7802.sol  # Adapter for ERC-7802 tokens (default)
+│   ├── LayerZeroAdapter.sol                     # Adapter for IMintableBurnable tokens (ERC-3643)
+│   ├── LayerZeroAdapterERC7802.sol              # Adapter for ERC-7802 tokens (default)
+│   ├── LayerZeroAdapterERC7802Ownable2Step.sol  # ERC-7802 adapter with 2-step ownership
+│   └── LayerZeroAdapterOwnable2Step.sol         # ERC-3643 adapter with 2-step ownership
 ├── script/
-│   ├── DeployToken.s.sol            # Deploy CMTAT token
-│   ├── DeployAdapter.s.sol          # Deploy ERC-7802 adapter (recommended)
-│   ├── DeployAdapterERC3643.s.sol   # Deploy ERC-3643 adapter
-│   ├── WireAdapters.s.sol           # Connect adapters across chains
-│   ├── Mint.s.sol                # Mint tokens
-│   ├── Approve.s.sol             # Approve adapter spending
-│   ├── SendTokens.s.sol          # Bridge tokens cross-chain
+│   ├── DeployToken.s.sol                      # Deploy CMTAT token
+│   ├── DeployAdapter.s.sol                    # Deploy ERC-7802 adapter (recommended)
+│   ├── DeployAdapterOwnable2Step.s.sol        # Deploy ERC-7802 adapter with Ownable2Step
+│   ├── DeployAdapterERC3643.s.sol             # Deploy ERC-3643 adapter
+│   ├── DeployAdapterERC3643Ownable2Step.s.sol # Deploy ERC-3643 adapter with Ownable2Step
+│   ├── WireAdapters.s.sol                     # Connect adapters across chains
+│   ├── Mint.s.sol                             # Mint tokens
+│   ├── Approve.s.sol                          # Approve adapter spending
+│   ├── SendTokens.s.sol                       # Bridge tokens cross-chain
 │   └── utils/
 │       ├── BaseScript.s.sol      # Base script utilities
 │       ├── Constants.sol         # Chain configuration
@@ -347,6 +386,7 @@ CMTAT-LayerZero/
 │   ├── Setup.s.sol              # Shared test setup for cross-chain tests
 │   ├── SendTokens.t.sol         # Cross-chain transfer tests
 │   ├── DeployAdapter.t.sol      # Deployment script tests
+│   ├── Ownable2StepAdapters.t.sol # 2-step ownership adapter tests
 │   └── utils/
 │       └── TestBase.sol         # Shared test helpers (deploy, roles)
 ├── deployments.json              # Deployment addresses
@@ -364,6 +404,9 @@ All scripts can be run using Foundry's `forge script` command. Here's a quick re
 | --------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------- |
 | `DeployToken`   | Deploy CMTAT token       | `forge script DeployToken -s "exec(string)" arbitrum-sepolia --broadcast`                                   |
 | `DeployAdapter` | Deploy LayerZero adapter | `forge script DeployAdapter -s "exec(string)" arbitrum-sepolia --broadcast`                                 |
+| `DeployAdapterOwnable2Step` | Deploy ERC-7802 LayerZero adapter with Ownable2Step | `forge script DeployAdapterOwnable2Step -s "exec(string)" arbitrum-sepolia --broadcast`                     |
+| `DeployAdapterERC3643` | Deploy ERC-3643 LayerZero adapter | `forge script DeployAdapterERC3643 -s "exec(string)" arbitrum-sepolia --broadcast`                           |
+| `DeployAdapterERC3643Ownable2Step` | Deploy ERC-3643 LayerZero adapter with Ownable2Step | `forge script DeployAdapterERC3643Ownable2Step -s "exec(string)" arbitrum-sepolia --broadcast`             |
 | `WireAdapters`  | Connect adapters         | `forge script WireAdapters -s "exec(string,string)" arbitrum-sepolia mainnet-sepolia --broadcast`           |
 | `Mint`          | Mint tokens              | `forge script Mint -s "exec(string,uint256)" arbitrum-sepolia 1000 --broadcast`                             |
 | `Approve`       | Approve adapter          | `forge script Approve -s "exec(string)" arbitrum-sepolia --broadcast`                                       |
@@ -391,6 +434,9 @@ forge test --match-path test/SendTokens.t.sol -v
 
 # Deployment script tests
 forge test --match-path test/DeployAdapter.t.sol -v
+
+# Ownable2Step adapter ownership tests
+forge test --match-path test/Ownable2StepAdapters.t.sol -v
 ```
 
 ### Test Structure
@@ -399,7 +445,8 @@ forge test --match-path test/DeployAdapter.t.sol -v
 |------|-------------|
 | `test/SendTokens.t.sol` | Cross-chain transfer, pause, access control tests |
 | `test/DeployAdapter.t.sol` | Deployment verification for both adapters |
-| `test/utils/TestBase.sol` | Shared helpers: `_deployCMTAT()`, `_deployAdapterERC7802()`, `_deployAdapterERC3643()` |
+| `test/Ownable2StepAdapters.t.sol` | Ownership transfer acceptance flow for Ownable2Step adapters |
+| `test/utils/TestBase.sol` | Shared helpers: `_deployCMTAT()`, `_deployAdapterERC7802()`, `_deployAdapterERC3643()`, `_deployAdapterERC7802Ownable2Step()`, `_deployAdapterERC3643Ownable2Step()` |
 
 The shared `TestBase.sol` provides internal functions used by both test files and mirrors the deployment script logic, ensuring consistency between tests and actual deployments.
 
@@ -411,7 +458,7 @@ The shared `TestBase.sol` provides internal functions used by both test files an
 4. **Access Control**:
    1. The adapter requires `CROSS_CHAIN_ROLE` on the CMTAT token - ensure proper access control. If the adapter has a vulnerability or a bug, revoke the role directly on CMTAT or put the token in the pause state. `crosschainMint` and `crosschainBurn` will revert if CMTAT is in the pause state.
    2. Alternatively, ERC-20 standard approval or time-based approval can be added by modifying CMTAT codebase. In this case, each adapter user will need to approve the adapter to allow it to spend token on their behalf, which will reduce risk in case if the adapter is compromised.
-5. **Adapter Pause**: Both adapters include `pause()` and `unpause()` functions (owner only). When paused, all cross-chain transfers are blocked.
+5. **Adapter Pause**: All adapters include `pause()` and `unpause()` functions (owner only). When paused, all cross-chain transfers are blocked.
 
 
 ## Troubleshooting

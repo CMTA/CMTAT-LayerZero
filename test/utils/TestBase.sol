@@ -5,6 +5,8 @@ import {Test} from "forge-std/Test.sol";
 
 import {LayerZeroAdapter} from "../../src/LayerZeroAdapter.sol";
 import {LayerZeroAdapterERC7802} from "../../src/LayerZeroAdapterERC7802.sol";
+import {LayerZeroAdapterOwnable2Step} from "../../src/LayerZeroAdapterOwnable2Step.sol";
+import {LayerZeroAdapterERC7802Ownable2Step} from "../../src/LayerZeroAdapterERC7802Ownable2Step.sol";
 
 import {CMTATStandalone} from "CMTAT/deployment/CMTATStandalone.sol";
 import {ICMTATConstructor} from "CMTAT/interfaces/technical/ICMTATConstructor.sol";
@@ -89,6 +91,21 @@ abstract contract TestBase is Test, TestHelperOz5 {
         adapter = new LayerZeroAdapterERC7802(address(cmtat), endpoint, admin);
     }
 
+    /**
+     * @notice Deploy ERC-7802 Ownable2Step adapter and grant CROSS_CHAIN_ROLE
+     * @param cmtat The CMTAT token
+     * @param endpoint The LayerZero endpoint
+     * @param admin The admin/delegate address
+     * @return adapter The deployed adapter
+     */
+    function _deployAdapterERC7802Ownable2Step(CMTATStandalone cmtat, address endpoint, address admin)
+        internal
+        returns (LayerZeroAdapterERC7802Ownable2Step adapter)
+    {
+        adapter = new LayerZeroAdapterERC7802Ownable2Step(address(cmtat), endpoint, admin);
+        cmtat.grantRole(cmtat.CROSS_CHAIN_ROLE(), address(adapter));
+    }
+
     // ============ Internal Helpers: ERC-3643 Adapter ============
 
     /**
@@ -120,6 +137,22 @@ abstract contract TestBase is Test, TestHelperOz5 {
         returns (LayerZeroAdapter adapter)
     {
         adapter = new LayerZeroAdapter(address(cmtat), address(cmtat), endpoint, admin);
+    }
+
+    /**
+     * @notice Deploy ERC-3643 Ownable2Step adapter and grant MINTER_ROLE and BURNER_ROLE
+     * @param cmtat The CMTAT token (also used as minterBurner)
+     * @param endpoint The LayerZero endpoint
+     * @param admin The admin/delegate address
+     * @return adapter The deployed adapter
+     */
+    function _deployAdapterERC3643Ownable2Step(CMTATStandalone cmtat, address endpoint, address admin)
+        internal
+        returns (LayerZeroAdapterOwnable2Step adapter)
+    {
+        adapter = new LayerZeroAdapterOwnable2Step(address(cmtat), address(cmtat), endpoint, admin);
+        cmtat.grantRole(cmtat.MINTER_ROLE(), address(adapter));
+        cmtat.grantRole(cmtat.BURNER_ROLE(), address(adapter));
     }
 
     // ============ Internal Helpers: Role Verification ============
