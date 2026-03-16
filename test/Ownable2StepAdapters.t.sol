@@ -174,7 +174,7 @@ contract Ownable2StepAdaptersTest is TestBase {
         assertEq(adapter7802.owner(), secondCandidate);
     }
 
-    function test_3643_newOwnerMustSyncDelegate() public {
+    function test_3643_delegateAutoSyncedOnAcceptOwnership() public {
         IEndpointDelegates ep = IEndpointDelegates(address(adapter3643.endpoint()));
 
         // Before transfer: delegate is admin
@@ -185,16 +185,11 @@ contract Ownable2StepAdaptersTest is TestBase {
         vm.prank(newOwner);
         adapter3643.acceptOwnership();
 
-        // Delegate is still admin — not auto-updated by ownership transfer
-        assertEq(ep.delegates(address(adapter3643)), admin);
-
-        // New owner syncs it
-        vm.prank(newOwner);
-        adapter3643.setDelegate(newOwner);
+        // Delegate is auto-synced to new owner by acceptOwnership()
         assertEq(ep.delegates(address(adapter3643)), newOwner);
     }
 
-    function test_7802_newOwnerMustSyncDelegate() public {
+    function test_7802_delegateAutoSyncedOnAcceptOwnership() public {
         IEndpointDelegates ep = IEndpointDelegates(address(adapter7802.endpoint()));
 
         assertEq(ep.delegates(address(adapter7802)), admin);
@@ -204,10 +199,7 @@ contract Ownable2StepAdaptersTest is TestBase {
         vm.prank(newOwner);
         adapter7802.acceptOwnership();
 
-        assertEq(ep.delegates(address(adapter7802)), admin);
-
-        vm.prank(newOwner);
-        adapter7802.setDelegate(newOwner);
+        // Delegate is auto-synced to new owner by acceptOwnership()
         assertEq(ep.delegates(address(adapter7802)), newOwner);
     }
 }

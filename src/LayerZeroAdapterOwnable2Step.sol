@@ -23,4 +23,14 @@ contract LayerZeroAdapterOwnable2Step is LayerZeroAdapter, Ownable2Step {
     function _transferOwnership(address newOwner) internal virtual override(Ownable, Ownable2Step) {
         Ownable2Step._transferOwnership(newOwner);
     }
+
+    /**
+     * @notice Accept ownership and automatically sync the LayerZero delegate to the new owner.
+     * @dev Without auto-sync, the previous owner would retain OApp configuration authority on the
+     *      endpoint until `setDelegate()` is called manually.
+     */
+    function acceptOwnership() public virtual override {
+        super.acceptOwnership();
+        setDelegate(msg.sender);
+    }
 }

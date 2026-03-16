@@ -12,6 +12,9 @@ contract WireAdapters is BaseScript {
         exec(chain, targetChain);
     }
 
+    // NOTE: This wires chain → targetChain only.
+    // For bidirectional communication, run this script again with the chains swapped
+    // (i.e., exec(targetChain, chain) or re-run with chain/targetChain reversed).
     function exec(string memory chain, string memory targetChain) public loadPk {
         vm.createSelectFork(chain);
 

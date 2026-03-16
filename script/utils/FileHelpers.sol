@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {Vm} from "forge-std/Vm.sol";
+import {console} from "forge-std/console.sol";
 
 import {Constants} from "./Constants.sol";
 
@@ -53,6 +54,15 @@ contract FileHelpers is Constants {
         try this.readContractAddress(chain, contractName) returns (address contractAddress) {
             return contractAddress;
         } catch {
+            console.log(
+                string.concat(
+                    "[WARN] readContractAddressNoRevert: '",
+                    contractName,
+                    "' not found on chain '",
+                    chain,
+                    "', returning address(0)"
+                )
+            );
             return address(0);
         }
     }

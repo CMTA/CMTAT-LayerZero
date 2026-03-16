@@ -18,7 +18,9 @@ contract LayerZeroAdapterERC7802 is OFTAdapter, PauseModule {
     constructor(address _token, address _lzEndpoint, address _delegate)
         OFTAdapter(_token, _lzEndpoint, _delegate)
         Ownable(_delegate)
-    {}
+    {
+        require(_token != address(0), "LayerZeroAdapterERC7802: token is zero address");
+    }
 
     /*//////////////////////////////////////////////////////////////
                                 PUBLIC

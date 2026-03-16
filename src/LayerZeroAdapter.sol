@@ -19,7 +19,9 @@ contract LayerZeroAdapter is MintBurnOFTAdapter, PauseModule {
     constructor(address _token, address _minterBurner, address _lzEndpoint, address _delegate)
         MintBurnOFTAdapter(_token, IMintableBurnable(_minterBurner), _lzEndpoint, _delegate)
         Ownable(_delegate)
-    {}
+    {
+        require(_token != address(0), "LayerZeroAdapter: token is zero address");
+    }
 
     /*//////////////////////////////////////////////////////////////
                          INTERNAL

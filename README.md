@@ -71,7 +71,7 @@ Each adapter family has two ownership variants:
 
 This reduces the risk of transferring ownership to an address that cannot operate the adapter.
 
-> **Note**: After `acceptOwnership()`, the new owner must call `setDelegate(newOwner)` on the adapter to sync the LayerZero endpoint delegate. Until this is done, the old owner remains the delegate for OApp configuration on the endpoint.
+> **Note**: The `Ownable2Step` adapter variants automatically sync the LayerZero endpoint delegate to the new owner inside `acceptOwnership()`. No manual `setDelegate()` call is needed after ownership transfer.
 
 ### UML
 
@@ -333,6 +333,8 @@ In rare cases, a transaction may fail on the destination chain after tokens have
 - Contract paused
 
 **What happens**: Tokens are burned on the source chain but not minted on the destination chain, leaving the tokens in a "stuck" state.
+
+**Pause and in-flight messages**: If the destination adapter is paused after a cross-chain message has already been sent from the source chain (tokens already burned), the mint on the destination chain will fail. In this case, the tokens remain in a "stuck" state until the destination adapter is unpaused and the message is retried via LayerZero Scan. Always monitor both source and destination adapters when using the pause mechanism.
 
 **Recovery options**:
 
